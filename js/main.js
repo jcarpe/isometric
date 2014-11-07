@@ -32,10 +32,10 @@ require(["environment", "triGrid", "imageProcessor"], function(Environment, TriG
 	window.triGrid = new TriGrid();
 	window.triGrid.renderFullGrid( window.environment.getScene() );
 
-	var imageProcessor = new ImageProcessor();
+	// var imageProcessor = new ImageProcessor();
 
-	imageProcessor.readImage( 'hills', document.getElementById( 'sap' ) );
+	// imageProcessor.readImage( 'hills', document.getElementById( 'sap' ) );
 
-	imageProcessor.renderImage( 'hills', 19, 39, window.triGrid.TRIANGLES )
+	// imageProcessor.renderImage( 'hills', 39, 69, window.triGrid.TRIANGLES )
 
 });

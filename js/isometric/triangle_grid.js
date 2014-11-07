@@ -2,8 +2,8 @@ define(["three", "utils"], function( THREE, Utils ) {
 
 	// var TRIANGLES = null;
 	var CURSOR_RADIUS = 7;
-	var TRI_COUNT_X = 39;
-	var TRI_COUNT_Y = 19;
+	var TRI_COUNT_X = 69;
+	var TRI_COUNT_Y = 39;
 	var TRI_SPACING = 0.05;
 
 	var TriGrid = function() {
