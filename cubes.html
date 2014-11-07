@@ -1,0 +1,540 @@
+<html>
+    <head>
+        <title>My first Three.js app</title>
+        <style>
+            body { margin: 0; }
+            canvas { width: 100%; height: 100% }
+        </style>
+    </head>
+    <body>
+        <script src="js/vendor/three/three.js"></script>
+        <script>
+            var scene = new THREE.Scene();
+            var camera;// = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+            var aspect = window.innerWidth / window.innerHeight;
+            var d = 20;
+            camera = new THREE.OrthographicCamera( - d * aspect, d * aspect, d, - d, 1, 1000 );
+
+            camera.position.set( 20, 20, 20 ); // all components equal
+            camera.lookAt( scene.position ); // or the origin
+
+            var renderer = new THREE.WebGLRenderer( { antialias: true });
+                renderer.setSize( window.innerWidth, window.innerHeight );
+
+            var pointLight = new THREE.PointLight( 0xFFFFFF, 1, 0 );
+                pointLight.position.set( 0, 5, 0 );
+
+            scene.add(pointLight);
+
+            document.body.appendChild( renderer.domElement );
+
+            var TRIANGLES = null;
+            var CURSOR_RADIUS = 5;
+            var TRI_COUNT = 35;
+
+            var generateTriangle = function( flip ) {
+                var material = new THREE.MeshLambertMaterial( { color:0x009530, side:THREE.DoubleSide } );
+
+                var geometry = new THREE.Geometry();
+
+                    if ( !flip ) {
+                        geometry.vertices.push(
+                            new THREE.Vector3( -Math.sqrt(0.75)/2, 0, 0 ),
+                            new THREE.Vector3( Math.sqrt(0.75)/2, 0.5, 0 ),
+                            new THREE.Vector3( Math.sqrt(0.75)/2, -0.5, 0 )
+                        );
+                    } else {
+                        geometry.vertices.push(
+                            new THREE.Vector3( -Math.sqrt(0.75)/2, 0.5, 0 ),
+                            new THREE.Vector3( -Math.sqrt(0.75)/2, -0.5, 0 ),
+                            new THREE.Vector3( Math.sqrt(0.75)/2, 0, 0 )
+                        );
+                    }
+
+                    geometry.faces.push( new THREE.Face3( 0, 1, 2 ) );
+                    geometry.computeBoundingSphere();
+                    geometry.computeFaceNormals();
+                    geometry.computeVertexNormals();
+
+                var mesh = new THREE.Mesh( geometry, material );
+
+                return mesh;
+            };
+
+            // var generateTriGrid = function() {
+            //     var triMatrix = [];
+            //     var flip = false;
+            //     var triSpacing = 0.05;
+
+            //     for ( var i = 0; i < TRI_COUNT; i++ ) {
+            //         var triRow = [];
+
+            //         for ( var j = 0; j < TRI_COUNT; j++ ) {
+            //             var xPos = i*Math.sqrt(0.75) + triSpacing*i - (TRI_COUNT*Math.sqrt(0.75))/2;
+            //             var yPos = j/2 + triSpacing*j - TRI_COUNT/4;
+            //             var tri = generateTriangle( flip );
+            //                 tri.translateX( xPos );
+            //                 tri.translateY( yPos );
+            //                 tri.translateZ( -5 );
+            //                 tri.gridPos = {};
+            //                 tri.gridPos.x = i;
+            //                 tri.gridPos.y = j;
+            //                 tri.name = "triangle-"+i+"-"+j;
+
+            //             triRow.push( tri );
+            //             scene.add( tri );
+
+            //             if ( !flip ) { flip = true; }
+            //             else { flip = false; }
+            //         }
+
+            //         triMatrix.push( triRow );
+            //     }
+
+            //     return triMatrix;
+            // };
+
+            var boxes = []
+                , animatingBoxes = []
+                ;
+
+
+            var cubicFunction = function( t, p0, p1, p2 ) {
+
+                var tm = 1 - t
+                    , tsq = t*t
+                    , tnsq = tm*tm
+                    ;
+
+                return tnsq * p0 + 2 * t * tm  + tsq * p2; 
+            }
+
+            var cols = 21;
+            var rows = 21;
+
+            var materialUp =  new THREE.MeshLambertMaterial( { color:0xFFFFFF, side:THREE.DoubleSide } )
+
+            var generateBoxGrid = function() {
+
+                var startY = -14
+                    , startX = -11
+                    , spacing = 0 //.125
+                    , size = 5
+                    , columnHeight = 10
+                    , geometry = new THREE.BoxGeometry( size, columnHeight, size, 1, 1, 1 )
+                    , material = new THREE.MeshLambertMaterial( { color:0x009530, side:THREE.DoubleSide } )
+                    , material2 = new THREE.MeshLambertMaterial( { color:0xFF9530, side:THREE.DoubleSide } )
+                    , material3 = new THREE.MeshLambertMaterial( { color:0x0095FF, side:THREE.DoubleSide } )
+                    , mat
+                    , mesh
+                    , box
+                    ;
+
+
+                var materials = [
+                   new THREE.MeshLambertMaterial({
+                       map: THREE.ImageUtils.loadTexture('./img/green.png')
+                   }),
+                   new THREE.MeshLambertMaterial({
+                       map: THREE.ImageUtils.loadTexture('./img/green.png')
+                   }),
+                   new THREE.MeshLambertMaterial({
+                       map: THREE.ImageUtils.loadTexture('./img/green.png')
+                   }),
+                   new THREE.MeshLambertMaterial({
+                       map: THREE.ImageUtils.loadTexture('./img/green.png')
+                   }),
+                   new THREE.MeshLambertMaterial({
+                       map: THREE.ImageUtils.loadTexture('./img/green.png')
+                   }),
+                   new THREE.MeshLambertMaterial({
+                       map: THREE.ImageUtils.loadTexture('./img/green.png')
+                   })
+                ];
+
+                var materials2 = [
+                   new THREE.MeshLambertMaterial({
+                           map: THREE.ImageUtils.loadTexture('./img/tb.png')
+                       }),
+                       new THREE.MeshLambertMaterial({
+                           map: THREE.ImageUtils.loadTexture('./img/tb.png')
+                       }),
+                       new THREE.MeshLambertMaterial({
+                           map: THREE.ImageUtils.loadTexture('./img/green.png')
+                       }),
+                       new THREE.MeshLambertMaterial({
+                           map: THREE.ImageUtils.loadTexture('./img/tb.png')
+                       }),
+                       new THREE.MeshLambertMaterial({
+                           map: THREE.ImageUtils.loadTexture('./img/tb.png')
+                       }),
+                       new THREE.MeshLambertMaterial({
+                           map: THREE.ImageUtils.loadTexture('./img/tb.png')
+                   })
+                ];
+
+                var textureMat = new THREE.MeshFaceMaterial( materials );
+                var textureMat2 = new THREE.MeshFaceMaterial( materials2 );
+
+                    geometry.applyMatrix( new THREE.Matrix4().makeTranslation(0, -columnHeight, 0) );
+
+
+                for( var i = 0; i < cols; ++i ){
+
+                    boxes[i] = [];
+
+                    for ( var j = 0; j < rows; ++j ) {
+
+                        if( i*j%3 === 0 ) {
+                            
+                            mat = material2;
+                        }
+                        else if ( i*j%3 === 2 ) {
+
+                            mat = material3;
+                        } else {
+
+                            mat = material;
+                        }
+
+                        mat = textureMat2;
+
+                        mesh = new THREE.Mesh( geometry, mat );
+                        mesh.position.set( ( i + startX ) * ( size ), 0, ( j + startY ) * ( size ) );
+                        geometry.dynamic = true;
+                        // mesh.scale.setY( 10 );
+                        scene.add( mesh );
+                        // mesh.material = mat;
+                        mesh.scale.set( 1 - spacing, 1, 1 - spacing );
+
+                        box = {
+
+                            material: mat,
+                            animating: false,
+                            animationT: 0,
+                            animationLength: 5000,// * Math.random( i * j ),
+                            animationStart: function() {
+
+                                if( this.joining ) {
+                                
+                                    this.mesh.material = textureMat;
+                                }
+                            },
+                            animationEnd: function() {
+
+                                this.mesh.material = this.material;
+                                this.joining = false;
+                                this.mesh.scale.set( 1 - spacing, 1, 1 - spacing );
+
+                            },
+                            animationFunction: function() {
+
+                                if( this.joining ) {
+
+                                    var swapTime = 0//.125;
+                                    var swapEndTime = 0//.125;
+
+
+                                    // if( this.animationT <  swapTime ) {
+
+                                    //     var off2 = map( this.animationT, 0, swapTime, 0, 1 );
+
+                                    //     var offVal = 1 - ( spacing - ( spacing * off2 ) );
+
+                                    //     offVal =  Math.ceil( offVal*100 )/100
+
+                                    //     this.mesh.scale.setX( offVal );
+                                    //     this.mesh.scale.setZ( offVal );
+
+                                    // } else if ( this.animationT < 1 - swapEndTime ) {
+
+
+                                        var aniT = this.animationT;//map( this.animationT, swapTime, 1 - swapEndTime,  0, 1 );
+
+                                        var off = aniT * 2;
+
+                                        if ( off > 1 ) {
+
+                                            off = 2 - off;
+                                        }
+
+                                        cub = cubicFunction( off, 0, 5, columnHeight - 1 );
+
+                                        // cub =  Math.ceil( cub*100 )/10
+
+                                        this.mesh.position.setY( cub );
+
+
+                                    // } else {
+
+                                    //     if( this.mesh.material != this.material ) {
+                                        
+                                    //         this.mesh.material = this.material;
+                                    //     }
+
+                                    //     var off2 = map( this.animationT, 1 - swapEndTime, 1, 0, 1 );
+
+                                    //     var offVal = 1 - ( spacing * off2 ) ;
+
+                                    //     offVal =  Math.ceil( offVal*100 )/100
+
+                                    //     this.mesh.scale.setX( offVal );
+                                    //     this.mesh.scale.setZ( offVal );
+
+                                    // }
+
+                                } else {
+
+                                    var off = this.animationT * 2;
+
+                                    if ( off > 1 ) {
+
+                                        off = 2 - off;
+                                    }
+
+                                    cub = cubicFunction( off, 0, 5, 4 + 1 );//1 * Math.random() );
+
+                                    this.mesh.position.setY( cub );
+
+                                }
+
+                                // // this.mesh.scale.x = 0.5;
+                                // // this.mesh.scale.z = 0.5;
+                                // this.mesh.scale.setX( 1 - ( spacing - ( spacing * off ) ) );
+                                // this.mesh.scale.setZ( 1 - ( spacing - ( spacing * off ) ) );
+                            }, 
+                            mesh: mesh
+
+                        }
+                        box.animationFunction =  box.animationFunction.bind( box );
+                        box.animationStart =  box.animationStart.bind( box );
+                        box.animationEnd =  box.animationEnd.bind( box );
+
+
+                        boxes[i].push( box );
+                    }
+                }
+
+            }
+
+            var pushRadius = function( mouseX, mouseY ) {
+                mouseX = map( mouseX, 0, document.documentElement.clientWidth, 0, TRI_COUNT-1 );
+                mouseY = map( mouseY, 0, document.documentElement.clientHeight, 0, TRI_COUNT-1 );
+
+                TRIANGLES.forEach( function( row ) {
+                    row.forEach( function( tri ) {
+                        var dist = Math.sqrt( Math.pow((tri.gridPos.x-mouseX), 2) + Math.pow((tri.gridPos.y-mouseY), 2) );
+                        var rotX, rotY;
+
+                        if ( dist > CURSOR_RADIUS ) {
+                            rotY = 0;
+                            rotX = 0;
+                        } else {
+                            rotY = (CURSOR_RADIUS - dist)/2;
+                            rotX = (CURSOR_RADIUS - dist)/2;
+                        }
+
+                        tri.rotation.x = rotX;
+                        tri.rotation.y = rotY;
+                    });
+                });
+            };
+
+            var pushUp = function ( x, y ) {
+
+                var box = boxes[x][y];
+
+                box.mesh.scale.set ( 1, 1, 1 );
+
+                box.mesh.position.setY( 5 );
+            }
+
+            var pushNeighbors = function ( x, y, nCount ) {
+
+                // pushBox( x, y );
+                // pushBox( x+1, y );
+                // pushBox( x+2, y );
+                // pushBox( x, y+1 );
+                // pushBox( x+1, y+1 );
+                // pushBox( x+2, y+1 );
+                // pushBox( x, y+2 );
+                // pushBox( x+1, y+2 );
+                // pushBox( x+2, y+2 );
+
+                for( var i = 0; i < nCount*nCount; ++i ) {
+
+                    boxes[ x + i%nCount ][ y + Math.floor( i / nCount ) ].joining = true;
+                    pushBox( x + i%nCount, y + Math.floor( i / nCount )  );
+
+                }
+            }
+
+            var pushBox = function ( x, y ) {
+
+                var box = boxes[x][y];
+
+
+                if( ! box.animating ) {
+             
+                    box.animating = true;
+
+                    box.animationStart();
+
+                    animatingBoxes.push( box );
+
+                }
+            }
+
+            var pushRow = function( row ) {
+
+                for( var i = 0; i < cols; ++i ) {
+
+                    pushBox( row, i );
+                }
+            }
+            var pushDeferredRow = function( row ) {
+
+
+                for( var i = 0; i < cols; ++i ) {
+
+
+                    setTimeout( ( function ( i ) { pushBox( row, i ) } ).bind( null, i ), i/cols * 1000 * Math.random(i*2) );
+                }
+            }
+
+            var pushAllRows = function() {
+
+                for( var i = 0; i < rows; ++i ) {
+
+
+                    setTimeout( ( function ( i ) { pushDeferredRow( i ) } ).bind( null, i ), i/rows * 1000  * Math.random(i) );
+                }
+            }
+
+            var pushAllBoxes = function() {
+                for( var j = 0; j < cols; ++j ) {
+                    for( var i = 0; i < rows; ++i ) {
+
+
+                        setTimeout( ( function ( i, j ) { pushBox( i, j ) } ).bind( null, i, j ), i/rows * 10000  * Math.random(i+j*i) );
+                    }
+                }
+            }
+
+            var animateBoxes = function ( delta ) {
+
+                var boxTime = 0
+                    ;
+
+                for( var i = 0; i < animatingBoxes.length; ++i ) {
+
+
+                    box = animatingBoxes[ i ];
+
+                    boxTime = box.animationT * box.animationLength;
+
+                    boxTime += delta;
+
+                    box.animationT = boxTime / box.animationLength;
+
+                    if( box.animationT >= 1 ) {
+
+                        box.animationT = 1;
+
+                    }
+
+                    box.animationFunction();
+
+                    if( box.animationT === 1 ) {
+
+
+                        box.animationT = 0;
+
+                        box.animating = false;
+
+                        animatingBoxes.splice( i, 1 );
+
+                        box.animationEnd(); 
+
+                    }
+
+                }
+            }
+
+            var dropCenter = function () {
+                var material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+                var geometry = new THREE.BoxGeometry( 0.4, 0.4, 0.4 );
+                var cube = new THREE.Mesh( geometry, material );
+                    cube.position.z -= 10;
+
+                scene.add( cube );
+            };
+
+            var map = function( value, start1, stop1, start2, stop2 ) {
+                return ( (value-start1)*(stop2-start2)/(stop1-start1) );
+            };
+
+            var time = new Date();
+
+            var render = function () {
+                requestAnimationFrame( render );
+
+                delta = (+new Date()) - time;
+
+                animateBoxes( delta );
+
+                time = new Date();
+
+                renderer.render(scene, camera);
+            };
+
+            document.onmousemove = function( e ) {
+                // translate mouse position based on screen center
+                var transX = (e.clientX - document.documentElement.clientWidth/2);
+                var transY = (e.clientY - document.documentElement.clientHeight/2);
+
+                // camera.rotation.y = THREE.Math.degToRad( transX/100 );
+                // camera.rotation.x = THREE.Math.degToRad( transY/100 );
+
+                // pushRadius( e.clientX, Math.abs(e.clientY-document.documentElement.clientHeight) );
+            };
+
+            var allRowsInt = null;
+            document.onclick = function() {
+
+                if( allRowsInt === null ) {
+
+                    allRowsInt = setInterval( pushAllBoxes, 1000  * Math.random() )
+                
+                } else {
+
+                    clearInterval( allRowsInt );
+
+                    allRowsInt = null;
+                }
+            }
+
+            // TRIANGLES = generateTriGrid();
+
+            var light = new THREE.AmbientLight( 0x404040 ); // soft white light
+            scene.add( light );
+
+
+
+            // pushAllRows();
+            // setInterval( pushAllRows, 1000 );
+
+            // dropCenter();
+            camera.position.z = 5;
+            render();
+
+            allRowsInt = setInterval( pushAllBoxes, 1000  * Math.random() )
+
+            generateBoxGrid();
+
+
+        </script>
+        <canvas width="1280" height="720" id="can" style="border:1px solid black;"></canvas>
+    </body>
+</html>
