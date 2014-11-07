@@ -1,18 +1,61 @@
 define(["three"], function( THREE ) {
 
-	var scene, camera, renderer, pointLight;
+	var scene
+		, camera
+		, renderer
+		, pointLight
+		, lights = []
+		, time = new Date()
+		, options = {
+			onRenderStart: function() {},
+	        onRenderFinish: function() {},
+	        onUpdate: function( delta ) {},
+	        onInit: function() {}
+		};
 
-	var Environment = function() {
+
+	var Environment = function( customOptions ) {
 
 		this.getScene = function() {
 			return scene;
 		};
 
-		this.init();
+		this.getRenderer = function () {
+
+			return renderer;
+		};
+
+		this.getCamera = function () {
+
+			return camera;
+		};
+
+		this.getLights = function () { 
+
+			return lights;
+		};
+
+	    this.addLight = function ( light ) {
+
+	        lights.push( light );
+	        scene.add( light );
+	    };
+
+	    this.removeLight = function ( light ) {
+
+	        lights.splice( lights.indexOf( light ), 1 );
+	        scene.remove( light );
+	    };
+
+		this.init( customOptions );
 	};
 
-	Environment.prototype.init = function() {
+	Environment.prototype.init = function( customOptions ) {
+		
+		shallowCopy( options, customOptions || {} );
+		
 		this.build();
+		options.onInit();
 		this.enableListeners();
 		render();
 	};
@@ -21,7 +64,7 @@ define(["three"], function( THREE ) {
 		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 		renderer = new THREE.WebGLRenderer({ antialias:true });
-		pointLight = new THREE.PointLight( 0xFFFFFF, 1, 0 );
+		var pointLight = new THREE.PointLight( 0xFFFFFF, 1, 0 );
 		
 		pointLight.position.set( 0, 0, 10 )
 		camera.position.z = 10;	
@@ -30,7 +73,7 @@ define(["three"], function( THREE ) {
 
 		document.body.appendChild( renderer.domElement );
 
-		scene.add( pointLight );
+		this.addLight( pointLight );
 	};
 
 	Environment.prototype.enableListeners = function() {
@@ -48,9 +91,36 @@ define(["three"], function( THREE ) {
 
 	function render() {
 		requestAnimationFrame( render );
-		renderer.render( scene, camera );
+
+        var delta = (+new Date()) - time;
+
+        options.onUpdate( delta );
+
+        time = new Date();
+
+        options.onRenderStart();
+
+        renderer.render(scene, camera);
+
+        options.onRenderFinish();
 	}
+
+
+    var shallowCopy = function ( parObj, cpyObj ) {
+
+        var keys = Object.keys( cpyObj )
+            , key
+            ;
+
+        for( var i = 0; i < keys.length; ++i ) {
+
+            key = keys[ i ];
+
+            parObj[ key ] = cpyObj[ key ]; 
+        }
+    };
 
 	return Environment;
 
 });
+
