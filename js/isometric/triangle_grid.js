@@ -16,6 +16,18 @@ define(["three", "utils"], function( THREE, Utils ) {
 			});
 		};
 
+		this.reset = function() {
+			this.TRIANGLES.forEach( function( row ) {
+				row.forEach( function( tri ) {
+					tri.position.x = tri.origPos.x;
+					tri.position.y = tri.origPos.y;
+					tri.position.z = tri.origPos.z;
+					tri.rotation.x = 0;
+					tri.rotation.y = 0;
+				});
+			});
+		};
+
 		this.congeal = function( mouseX, mouseY ) {
 			mouseX = Utils.map( mouseX, 0, document.documentElement.clientWidth, 0, TRI_COUNT_X-1 );
 			mouseY = Utils.map( mouseY, 0, document.documentElement.clientHeight, 0, TRI_COUNT_Y-1 );
