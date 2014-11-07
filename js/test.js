@@ -1,7 +1,7 @@
 var TRIANGLES = null;
 var CURSOR_RADIUS = 7;
 var TRI_COUNT = 59;
-var TRI_SPACING = 0.05;
+var TRI_SPACING = -0.01;
 var COLORS = {
 	Green:0x009530,
 	Creme:0xe8ddc9
@@ -16,14 +16,8 @@ var renderer = new THREE.WebGLRenderer({ antialias:true });
 var pointLight = new THREE.PointLight( 0xFFFFFF, 1, 0 );
 	pointLight.position.set( 0, 0, 5 );
 
-// var cityTex = THREE.ImageUtils.loadTexture( './img/pony.jpg' );
-// var cityMaterial = [new THREE.MeshLambertMaterial({ map:cityTex })];
-
-var cityMaterial = new THREE.MeshLambertMaterial({
-	map: THREE.ImageUtils.loadTexture( './img/boston-skyline.jpg' ),
-	side:THREE.DoubleSide
-});
-
+var cityMaterial = new THREE.MeshLambertMaterial({ map: THREE.ImageUtils.loadTexture( './img/boston-skyline.jpg' ), side:THREE.DoubleSide });
+var materialBasic = new THREE.MeshBasicMaterial({ color:COLORS.Green });
 var material = new THREE.MeshLambertMaterial({ color:COLORS.Green, side:THREE.DoubleSide });
 var wireMaterial = new THREE.MeshLambertMaterial({ color:COLORS.Green, wireframe:true, side:THREE.DoubleSide, vertexColors:THREE.VertexColors });
 
@@ -68,7 +62,7 @@ var generateTriangle = function( flip ) {
 		geometry.computeFaceNormals();
 		geometry.computeVertexNormals();
 
-	var mesh = new THREE.Mesh( geometry, wireMaterial );
+	var mesh = new THREE.Mesh( geometry, material );
 
 	return mesh;
 };
@@ -110,14 +104,25 @@ var generateTriGrid = function() {
 };
 
 var fillShape = function( startX, startY, width, height ) {
-	var step = 0;
-	for ( var i = startX; i < startX+width; i++ ) {
-		for ( var j = startY; j < startY+height; j++ ) {
-			TRIANGLES[i][j+step].material = material;
-		}
-		
-		step++;
-	}
+	var shapeVecArr = [];
+	var shape = new THREE.Shape();
+	var shapeGeometry = null;
+	var offset = Math.abs(TRIANGLES[startX][startY].position.y - TRIANGLES[startX][startY-1].position.y);	
+	
+	shape.moveTo( TRIANGLES[startX][startY].position.x+TRIANGLES[startX][startY].geometry.vertices[0].x, TRIANGLES[startX][startY].position.y+TRIANGLES[startX][startY].geometry.vertices[0].y );
+	shape.lineTo( TRIANGLES[startX+width][startY].position.x+TRIANGLES[startX+width][startY].geometry.vertices[0].x, TRIANGLES[startX+width][startY].position.y+TRIANGLES[startX+width][startY].geometry.vertices[0].y+width*offset-offset );
+	shape.lineTo( TRIANGLES[startX+width][startY+height].position.x+TRIANGLES[startX+width][startY+height].geometry.vertices[0].x, TRIANGLES[startX+width][startY+height].position.y+TRIANGLES[startX+width][startY+height].geometry.vertices[0].y+width*offset+offset );
+	shape.lineTo( TRIANGLES[startX][startY+height].position.x+TRIANGLES[startX][startY+height].geometry.vertices[0].x, TRIANGLES[startX][startY+height].position.y+TRIANGLES[startX][startY+height].geometry.vertices[0].y );
+	shape.lineTo( TRIANGLES[startX][startY].position.x+TRIANGLES[startX][startY].geometry.vertices[0].x, TRIANGLES[startX][startY].position.y+TRIANGLES[startX][startY].geometry.vertices[0].y );
+
+	shapeGeometry = new THREE.ShapeGeometry( shape );
+	shapeGeometry.computeBoundingSphere();
+	shapeGeometry.computeFaceNormals();
+	shapeGeometry.computeVertexNormals();
+
+	var mesh = new THREE.Mesh( shapeGeometry, material );
+		// mesh.position.set( 16, 2, 0 );
+	scene.add( mesh );
 };
 
 var congeal = function( mouseX, mouseY ) {
@@ -187,11 +192,14 @@ document.onmousemove = function( e ) {
 	camera.rotation.y = THREE.Math.degToRad( transX/100 );
 	camera.rotation.x = THREE.Math.degToRad( transY/100 );
 
-	// pushRadius( e.clientX, Math.abs(e.clientY-document.documentElement.clientHeight) );
+	pushRadius( e.clientX, Math.abs(e.clientY-document.documentElement.clientHeight) );
 	// congeal( e.clientX, Math.abs(e.clientY-document.documentElement.clientHeight) );
 };
 
 TRIANGLES = generateTriGrid();
 // dropCenter();
+fillShape( 10, 10, 5, 5 );
+fillShape( 30, 30, 5, 5 );
+
 camera.position.z = 10;
 render();
