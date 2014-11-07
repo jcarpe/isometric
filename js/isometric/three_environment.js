@@ -23,9 +23,10 @@ define(["three"], function( THREE ) {
 		renderer = new THREE.WebGLRenderer({ antialias:true });
 		pointLight = new THREE.PointLight( 0xFFFFFF, 1, 0 );
 		
-		pointLight.position.set( 0, 0, 5 )
+		pointLight.position.set( 0, 0, 10 )
 		camera.position.z = 10;	
 		renderer.setSize( window.innerWidth, window.innerHeight );
+		renderer.setClearColor( 0xffffff, 1 );
 
 		document.body.appendChild( renderer.domElement );
 
@@ -40,8 +41,8 @@ define(["three"], function( THREE ) {
 			camera.rotation.y = THREE.Math.degToRad( transX/100 );
 			camera.rotation.x = THREE.Math.degToRad( transY/100 );
 
-			// pushRadius( e.clientX, Math.abs(e.clientY-document.documentElement.clientHeight) );
-			// congeal( e.clientX, Math.abs(e.clientY-document.documentElement.clientHeight) );
+			window.triGrid.pushRadius( e.clientX, Math.abs(e.clientY-document.documentElement.clientHeight) );
+			// window.triGrid.congeal( e.clientX, Math.abs(e.clientY-document.documentElement.clientHeight) );
 		};
 	};
 

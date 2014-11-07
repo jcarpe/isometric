@@ -1,4 +1,4 @@
-define(["three"], function( THREE ) {
+define(["three", "utils"], function( THREE, Utils ) {
 
 	// var TRIANGLES = null;
 	var CURSOR_RADIUS = 7;
@@ -17,8 +17,8 @@ define(["three"], function( THREE ) {
 		};
 
 		this.congeal = function( mouseX, mouseY ) {
-			mouseX = map( mouseX, 0, document.documentElement.clientWidth, 0, TRI_COUNT-1 );
-			mouseY = map( mouseY, 0, document.documentElement.clientHeight, 0, TRI_COUNT-1 );
+			mouseX = Utils.map( mouseX, 0, document.documentElement.clientWidth, 0, TRI_COUNT_X-1 );
+			mouseY = Utils.map( mouseY, 0, document.documentElement.clientHeight, 0, TRI_COUNT_Y-1 );
 
 			this.TRIANGLES.forEach( function( col ) {
 				col.forEach( function( tri ) {
@@ -31,9 +31,8 @@ define(["three"], function( THREE ) {
 						posX += (TRI_SPACING*(mouseX-tri.gridPos.x));
 						posY += (TRI_SPACING*(mouseY-tri.gridPos.y));
 						posZ += 0.5;
-						tri.material = material;
 					} else {
-						tri.material = wireMaterial;
+						// tri.material = wireMaterial;
 					}
 
 					tri.position.x = posX;
@@ -44,10 +43,10 @@ define(["three"], function( THREE ) {
 		};
 
 		this.pushRadius = function( mouseX, mouseY ) {
-			mouseX = map( mouseX, 0, document.documentElement.clientWidth, 0, TRI_COUNT_X-1 );
-			mouseY = map( mouseY, 0, document.documentElement.clientHeight, 0, TRI_COUNT_Y-1 );
+			mouseX = Utils.map( mouseX, 0, document.documentElement.clientWidth, 0, TRI_COUNT_X-1 );
+			mouseY = Utils.map( mouseY, 0, document.documentElement.clientHeight, 0, TRI_COUNT_Y-1 );
 
-			TRIANGLES.forEach( function( col ) {
+			this.TRIANGLES.forEach( function( col ) {
 				col.forEach( function( tri ) {
 					var dist = Math.sqrt( Math.pow((tri.gridPos.x-mouseX), 2) + Math.pow((tri.gridPos.y-mouseY), 2) );
 					var rotX, rotY;

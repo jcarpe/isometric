@@ -5,6 +5,7 @@ require.config({
 		"three": "vendor/three/three",
 
 		// -----
+		"utils": "utils/utils",
 		"environment": "isometric/three_environment",
 		"triGrid": "isometric/triangle_grid"
 	},
@@ -26,7 +27,7 @@ require.config({
 
 require(["environment", "triGrid"], function(Environment, TriGrid) {
 	window.environment = new Environment();
-	
+
 	window.triGrid = new TriGrid();
 	window.triGrid.renderFullGrid( window.environment.getScene() );
 });
